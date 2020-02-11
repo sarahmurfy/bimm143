@@ -1,0 +1,252 @@
+---
+title: "Class 6 - R Function"
+author: "Sarah Murphy"
+date: "1/23/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Functions
+
+##Level 2 heading
+
+###Level 3 Heading
+
+#Notes
+#Data Import
+Read.table(“your file name”, header = TRUE, Sep = “\\t”)
+
+```{r}
+#This is a silly plot
+plot(1:5)
+```
+
+Let's see more about **file import** (i.e. reading files into R) The main read function in base R is `read.table()`
+Use different read functions for different types of data. They each have different predefined arguments that are specific for different types of data. This saves typing in creating code.
+
+```{r}
+read.table("test1.txt")
+```
+
+We need to add arguments to get this file read properly!
+
+```{r}
+read.table("test1.txt",sep = ",", header = TRUE)
+```
+
+This is how to read this type of data properly. But this could also be done using `read.csv`, which has the arguments I want in this case!
+
+```{r}
+t1<-read.csv("test1.txt")
+t1
+```
+
+The second file
+```{r}
+t2<-read.table("test2.txt", header = TRUE, sep = "$")
+t2
+```
+
+The third file
+```{r}
+t3<-read.table("test3.txt")
+t3
+```
+
+# Back to functions
+
+Our first example function
+
+```{r}
+add <- function(x, y=1) {
+ # Sum the input x and y
+ x + y
+}
+```
+
+This function has now been added to our global environment. Let's try using it!
+
+```{r}
+add(34)
+```
+```{r}
+add(32,35)
+```
+
+How does this work with vectors as the input?
+
+```{r}
+add( c(1, 2, 3) )
+add( c(1, 2, 3), 4 )
+```
+
+How about multiple vectors?
+
+```{r}
+add( c(1, 2, 3), c(1,2,3) )
+```
+
+If it is not made into a vector, the additional numbers are considered extra arguments, and the function does not know what to do with them. This will result in an error message.
+```{r}
+#add( c(1, 2, 3), 1,2,3 )
+```
+
+# Writing Your Own Functions
+
+Helps simplify work and clarify purpose of code
+Start with a working code snippet, simplify your variables, reduce calculation duplication, and *finally* turn it into a function!
+i.e. df$a = x
+`minx <- min (x)`
+`rng<-range(x)`
+
+What is this `range()` function you talk of?
+
+```{r}
+x<-c(4,4,10,3,11)
+max(x)
+min(x)
+range(x)
+```
+
+This is our second function
+```{r}
+rescale <- function(x) {
+ rng <-range(x)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale(x)
+```
+
+Let's do some more testing of our rescale function:
+```{r}
+rescale(1:10)
+```
+
+What happens when a data value has NA in it?
+```{r}
+rescale( c(1,2,NA,3,10) )
+```
+The output is all "NA"! This is not what we want.
+
+```{r}
+x<-( c(1,2,NA,3,10) )
+rng <-range(x)
+rng
+```
+
+```{r}
+rng <-range(x, na.rm=TRUE)
+rng
+```
+
+```{r}
+rescale2 <- function(x) {
+ rng <-range(x, na.rm = TRUE)
+ (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale2( c(1,2,NA,3,10) )
+```
+
+Going too far
+
+```{r}
+rescale3 <- function(x, na.rm=TRUE, plot=FALSE) {
+ rng <-range(x, na.rm=na.rm)
+ print("Hello")
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ print("is it me you are looking for?")
+ if(plot) {
+   print("Don't sing again!")
+ plot(answer, typ="b", lwd=4)
+ }
+ print("I can see it in ...")
+ return(answer)
+}
+```
+
+```{r}
+rescale3(x, plot = FALSE)
+```
+
+#Hands On Worksheet
+##Section B
+
+```{r}
+library(bio3d)
+s1 <- read.pdb("4AKE") # kinase with drug
+s2 <- read.pdb("1AKE") # kinase no drug
+s3 <- read.pdb("1E4Y") # kinase with drug
+
+s1.chainA <- trim.pdb(s1, chain="A", elety="CA")
+s2.chainA <- trim.pdb(s2, chain="A", elety="CA")
+s3.chainA <- trim.pdb(s3, chain="A", elety="CA")
+
+s1.b <- s1.chainA$atom$b
+s2.b <- s2.chainA$atom$b
+s3.b <- s3.chainA$atom$b
+
+plotb3(s1.b, typ="l", ylab="Bfactor")
+plotb3(s2.b, sse=s2.chainA, typ="l", ylab="Bfactor")
+plotb3(s3.b, sse=s3.chainA, typ="l", ylab="Bfactor")
+```
+
+#Q1. What type of object is returned from the read.pdb() function?
+`read.pdb()` reads a Protein Data Bank coordinate file and pulls up the data into the Global Environment. By doing this, the data can be named and easily input into functions to analyze. `read.pdb()` returns a list of 8 things and of class "pdb", "sse".
+#Q2. What does the trim.pdb() function do?
+`trim.pdb()` trims a PDB object to a subset of atoms. 
+#Q3. What input parameter would turn off the marginal black and grey rectangles in the plots and what do they represent in this case?
+The sse parameter turns of the rectangles in the plots. ?plotb3 > dssp tells us that there are 3 values for the rectangles: helix, sheet, or turn.
+#Q4. What would be a better plot to compare across the different proteins?
+It would be better to have all 3 proteins in one plot so that it is easier to recognize patterns without shuffling between 3 different graphs. This can be done by using `points()` and adding the name
+#Q5. Which proteins are more similar to each other in their B-factor trends. How could you quantify this? HINT: try the rbind(), dist() and hclust() functions together with a resulting dendrogram plot. Look up the documentation to see what each of these functions does.
+s2.b and s3.b are most closely related. `rbind()` combines vectors by row and `dist()` finds the distance between each protein.
+
+```{r}
+s1 <- read.pdb("4AKE") # kinase with drug
+s1
+```
+
+```{r}
+class(s1)
+str(s1)
+```
+
+```{r}
+aa321(s1$seqres)
+```
+
+```{r}
+s1$atom
+```
+
+```{r}
+plotb3(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+points(s2.b, typ="l", col="PURPLE",lwd=2)
+points(s3.b, typ="l", col="PINK",lwd=2)
+
+```
+
+
+```{r}
+hc <- hclust( dist( rbind(s1.b, s2.b, s3.b) ) )
+plot(hc)
+```
+
+#Q6. How would you generalize the original code above to work with any set of input protein structures?
+```{r}
+library(bio3d)
+proteins <- c(read.pdb("4AKE"), read.pdb("1AKE"), read.pdb("1E4Y"))
+proteins
+```
+
+```{r}
+proteins2<-function(proteins, na.rm=TRUE, plot=TRUE) {
+ trim <-trim.pdb(proteins, chain="A", elety="CA")
+ proteins3<-trim$atom$b
+ plot(proteins3, typ="l",col="rainbow",lwd=2)
+}
+```
+
