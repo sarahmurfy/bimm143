@@ -1,0 +1,251 @@
+---
+title: "Class 7"
+author: "Sarah Murphy"
+date: "1/28/2020"
+output: github_document
+---
+
+##Class 7
+###Recap: How to Use Functions
+Q6 Homework: Make sure you understand what each line of code does. Must be a separate file from in class activities in an R Markdown file.
+
+Structure: `fname <- function(arg1,arg2) {paste(arg1, arg2)}`
+Input arguments: predefine arguments - call it 
+Function body: arguments do whatever you tell them to do in the function body
+
+Example: `rescale <- function(x, na.rm=TRUE, plot=FALSE, ...) {
+ rng <-range(x, na.rm=na.rm)
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ if(plot) {
+ plot(answer, ...)
+ }
+ return(answer)
+}'
+
+rescale = function
+
+For multiple conditions, use "if" statements: branching logic trees to return different values for different conditions.
+
+##Process for Coding a Function
+1. Start with a simple problem and write a working snippet of code.
+2. Rewrite and use temporary variables
+3. Rewrite for clarity and to reduce calculation duplication
+4. Turn into an initial function with clear useful names
+5. Test on small well defined input and (subsets of) real input
+6. Report on potential problem by failing early and loudly!
+7. Refine and polish 
+
+These are functions, look here!
+```{r}
+#Functions
+is_both_na <- function(x,y){
+  if(length(x)!=length(z)){
+    stop("Your inputs are not the same lengths.")
+  }
+  is.na(x) & is.na(y)
+}
+
+rescale_new <- function(x, y) {
+ if(length(x) != length(y)) {
+ stop("Input x and y should be vectors of the same length", call.=FALSE)
+ }
+na.in.both<- (is.na(x) & is.na(y))
+ na.number <- sum(na.in.both)
+ na.which <- which(na.in.both)
+ 
+ message("Found ", na.number, " NA's at position(s):",
+ paste(na.which, collapse=", ") )
+
+ return( list(number=na.number, which=na.which) )
+}
+
+rescale <- function(x, na.rm=TRUE, plot=FALSE, ...) {
+  ##Our rescale function from the end of lecture 6
+ if( !is.numeric(x) ) {
+ stop("Input x should be numeric", call.=FALSE)
+ }
+ rng <-range(x, na.rm=na.rm)
+
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ if(plot) {
+ plot(answer, ...)
+ }
+ return(answer)
+}
+```
+
+
+# The functions warning() and stop()
+These are used inside functions to handle and report on unexpected situations
+• They both print a user defined message (which you supply as a
+character input argument to the warning() and stop() functions).
+• However, warning() will keep on going with running the function
+body code whereas stop() will terminate the action of the
+function.
+• A common idiom is to use stop("some message") to report on
+unexpected input type or other problem early in a function,
+- i.e. "Fail early and loudly!"
+
+Use warning for tolerable error and stop for tolerable error.
+
+In `rescale2`, we are generating an error we can act on and prevent. We want this function to act on everything that is TRUE.
+
+Providing a warning can help give a more specific error message as to what the issue is.
+
+```{r}
+# Lets define an example x and y
+x <- c( 1, 2, NA, 3, NA)
+y <- c(NA, 3, NA, 3, 4)
+z<- c(1,1)
+```
+How to test if there is an NA value as opposed to a numeric value without looking at the data set?
+`is.na` function will provide TRUE/FALSE statement to every variable in a vector.
+
+In `rescale_new`, remember that TRUE =1 & FALSE=0, so to sum a binary vector will tell how many true and falses exist.
+
+`rm()` removes a variable/function in global environment.
+
+```{r}
+x<- df1$IDs
+y<- df2$IDs
+
+intersect(x,y)
+
+x %in% y
+x
+x[x %in% y]
+
+y
+y%in%x
+y[y%in%x]
+
+
+cbind(x[x %in% y], y[y%in%x])
+```
+`%in%` gives which elements of X are in Y. Gives us a logical index that allows us to pull all data from data frame.
+`x[x%in%y]` pulls variables of x that are in y: "Which variables of X fulfill the condition of which elements of x are also in y?"
+
+`cbind` binds two matrices as single intersected unit.
+
+```{r}
+gene_intersect <- function(x, y) {
+  cbind(x[x %in% y], y[y%in%x])
+}
+
+gene_intersect2 <- function(df1,df2) {
+  cbind(df1[df1$IDs %in% df2$IDs,], 
+        df2[df2$IDs %in% df1$IDs, ], "exp")
+}
+
+
+gene_intersect3 <- function(df1,df2, gene.colname = "IDs") {
+  cbind(df1[df1[,gene.colname] %in% df2[,gene.colname],], 
+        df2[df2[,gene.colname] %in% df1[,gene.colname], ], "exp")
+}
+
+
+
+gene_intersect4 <- function(df1,df2, gene.colname = "IDs") {
+  df1.name <-df1[,gene.colname]
+  df2.name <-df2[,gene.colname]
+  
+  df1.inds<-df1.name %in% df2.name
+  df2.inds<-df2.name %in% df1.name
+  
+  cbind(df1[ df1.inds,], 
+        df2[df2.inds, ], "exp")
+}
+
+df1$IDs
+gene.colname = "IDs"
+
+colnames(df1) <- c("new_name","exp")
+df1
+
+x<- df1$IDs
+y<- df2$IDs
+gene_intersect(x,y)
+
+gene_intersect2(df1, df2)
+
+gene_intersect3(df1, df2, gene.colname = "IDs")
+
+gene_intersect4(df1, df2, gene.colname = "new_name")
+
+###Must add commas in `gene_intersect 2` to include every element in each dataframe, not just the IDs
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#CRAN and Bioconductor
+
+CRAN has over 15,000 R packages to download.
+Can Google packages or can go to CRAN website > Packages
+Come in all shapes, sizes, and qualities - check for most updated packages (within last year)
+
+##Installing a package from CRAN
+RStudio > Tools > Install Packages
+`install.packages("packagename")`
+
+Bioconductor emphasizes reproducible research and high-thoroughput genomic data.
+
+
+```{r}
+library(ggplot2)
+dim(iris)
+class(iris)
+head(iris)
+levels(iris$Species)
+```
+
+
+R Graph Gallery website shows all types of graphs that can be generated through R.
+
+##ggplot2
+-Must be data
+
+##Aesthetics
+-how data is represented visually
+-Which data on x axis and which on y
+-But also: color, size, shape, transparency for arguments
+
+## Geometry
+Geometric objects (points, lines, polygons) in the object
+Shortcut functions: `geom_point()`, `geom_bar()`, `geom_line()`
+Must use plus signs between ggplot and geom functions
+
+```{r}
+myplot<-ggplot(data=iris, aes(x=Sepal.Length, y =Sepal.Width)) ##Initialize a ggplot object, not an actual plot
+class(myplot)
+
+ggplot(data=iris, aes(x=Sepal.Length, y=Sepal.Width, color = Species)) + geom_point(aes(shape=Species),size=3) +
+  geom_smooth(method="lm")
+
+ggplot(iris, aes(Sepal.Length, fill = Species)) +
+  geom_bar(stat='count')
+```
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

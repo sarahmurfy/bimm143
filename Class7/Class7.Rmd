@@ -1,0 +1,60 @@
+---
+title: "Class7"
+author: "Sarah Murphy"
+date: "1/28/2020"
+output: ioslides_presentation
+---
+#WRONG OUTPUT - SEE CLASS-7.RMD
+##Class 7
+###Recap: How to Use Functions
+Q6 Homework: Make sure you understand what each line of code does. Must be a separate file from in class activities in an R Markdown file.
+
+Structure: `fname <- function(arg1,arg2) {paste(arg1, arg2)}`
+Input arguments: predefine arguments - call it 
+Function body: arguments do whatever you tell them to do in the function body
+
+Example: `rescale <- function(x, na.rm=TRUE, plot=FALSE, ...) {
+ rng <-range(x, na.rm=na.rm)
+ answer <- (x - rng[1]) / (rng[2] - rng[1])
+ if(plot) {
+ plot(answer, ...)
+ }
+ return(answer)
+}'
+
+rescale = function
+
+For multiple conditions, use "if" statements: branching logic trees to return different values for different conditions.
+
+##Process for Coding a Function
+1. Start with a simple problem and write a working snippet of code.
+2.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
