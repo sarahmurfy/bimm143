@@ -12,6 +12,6 @@ Check initiate
 4. Push to GitHub using upward arrow in Git Panel
 <<<<<<< HEAD
 
-This allows us to create web content for free using R markdown.
+### This allows us to create web content for free using R markdown.
 =======
 >>>>>>> 725effef3a1c55f56f29a63a7fa1459799f4672f
