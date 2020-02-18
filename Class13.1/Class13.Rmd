@@ -34,9 +34,30 @@ write.pdb(prot, file="1hsg_protein.pdb")
 
 Select and write out ligand file only
 
+Use MGLTools to visualize proteins
+
+PDB -> protein -> Add Hydrogens and atom types and charges -> save as a PDBQT file
+
+PDB -> ligand
+
+receptor = 1hsg_protein.pdbqt
+ligand = ligand (1).pdbqt
+
+num_modes = 50
+out = all.pdbqt
+
+center_x = 16
+center_y = 25
+center_z = 4
+
+size_x = 30
+size_y = 30
+size_z = 30
+seed = 2009
+
 ```{r}
 lig <- atom.select(hiv, string="ligand", value=TRUE)
-write.pdb(lig, file="1hsg_protein.pdb")
+write.pdb(lig, file="1hsg_ligand.pdb")
 lig
 ```
 
