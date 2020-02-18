@@ -1,0 +1,42 @@
+---
+title: "Class 13: Structure Based Drug Discovery"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Download and clean up the receptor structure
+
+Here we will download the 1HSG PDB structure from the online database, remove the bound drug Merck and write out a protein only and ligand only new set of PDB files
+
+We will use the bio3d package function `get.pdb()`, `read.pdb()`, `atom.select()`, and `write.pdb()`
+
+```{r}
+# Download the PDB structure
+
+library(bio3d)
+
+file.name <- get.pdb("1HSG")
+hiv <- read.pdb(file.name)
+hiv
+```
+
+Q1: What is the name of the two non protein resid values in this structure? What does resid correspond to and how would you get a listing of all reside values in this structure? 
+
+Water (HOH) and Merck (MK1, ligand); resid corresponds to the residue name within the protein
+
+```{r}
+prot<-atom.select(hiv, string="protein", value=TRUE)
+write.pdb(prot, file="1hsg_protein.pdb")
+```
+
+Select and write out ligand file only
+
+```{r}
+lig <- atom.select(hiv, string="ligand", value=TRUE)
+write.pdb(lig, file="1hsg_protein.pdb")
+lig
+```
+
