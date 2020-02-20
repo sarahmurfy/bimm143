@@ -1,0 +1,204 @@
+---
+title: "Class 15: Genome Informatics II Hands On Worksheet"
+output: github_document
+---
+## Import Today's Data
+
+The data for this hands-on session comes from a published RNA-seq experiment where airway smooth muscle cells were treated with dexamethasone, a synthetic glucocorticoid steroid with anti-inflammatory effects (Himes et al. 2014).
+
+Glucocorticoids are used, for example, by people with asthma to reduce inflammation of the airways. The anti-inflammatory effects on airway smooth muscle (ASM) cells has been known for some time but the underlying molecular mechanisms are unclear.
+
+```{r}
+counts <- read.csv("airway_scaledcounts.csv", stringsAsFactors = FALSE)
+metadata <-  read.csv("airway_metadata.csv", stringsAsFactors = FALSE)
+counts
+metadata
+```
+
+We have 4 sets of control and treated groups. We have count data and metadata. For each row in the count data, we want to calculate the mean and distinguish between control and treated groups.
+
+These values represent the number of fragments mapped to the gene.
+
+```{r}
+# How many genes are we dealing with?
+
+nrow(counts)
+```
+
+```{r}
+# We want to calculate the average counts per gene for control samples and for the drug. We will then compare these calues to see if there is a difference overall between control and treated samplesfor a given gene.
+
+control<-metadata[metadata$dex == "control",]
+metadata$id[metadata$dex == "control"]
+metadata[metadata$dex == "control",]$id
+```
+This is our metadata infor that tells me where out control and treated samples are.
+
+Viewing the counts data, there is variance in counts within genes.
+
+Now, I want to access the control only data in the metadata. Now use the $id of the control data to access the control columns in `counts`. We are calculating the mean/average of control values for each gene. Ultimately, if we end up running further experiments, we need to ensure our code divides by the exact number of experiments in our data. Do not divide the sum by four.
+```{r}
+control.mean <- rowSums(counts[ , control$id])/nrow(control)
+names(control.mean) <- counts$ensgene
+```
+
+Now let's do the same for the *treated* samples
+
+```{r}
+treated<-metadata[metadata$dex == "treated",]
+treated
+counts[,treated$id]
+treated.mean <- rowSums(counts[, treated$id])/nrow(treated)
+
+```
+
+We will combine our meancount data for bookkeeping purposes.
+
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+meancounts
+```
+
+If we plotted the control and treated samples and they were both the same/had no difference between the two, there would be a linear relationship. This would mean the drug has no effect. Let's plot the data.
+
+```{r}
+plot(meancounts)
+```
+
+There should be nearly 40,000 points, but the graph above does not look like it contains that many points. This is because the data is skewed and most of the points overlap at the bottom left. Taking the log of the data will spread the data out. 
+
+```{r}
+plot(meancounts, log="xy")
+```
+
+The logarithmic graph is relatively linear but there is some spread. That means there is something going on with our data. Above the diagonal means that the gene is upregulated in the presence of the drug. Let's create a fraction of treated vs. mean to determine the difference.
+
+```{r}
+meancounts$log2fc <- log2(meancounts[,"treated.mean"]/meancounts[,"control.mean"])
+head(meancounts)
+```
+
+Since we are working in logs, negative values means down (less than 1) and positive values means up (greater than 1). NaN occurs when dividing 0 by 0, and Inf occurs when when dividing an integer by 0.
+
+Remove any genes that has zero average counts.
+
+```{r}
+zero.vals <- which(meancounts[,1:2]==0, arr.ind=TRUE)
+# The which function tells us which value in a vector is 0. `arr.ind` tells us where the 0s occur (row and col).
+to.rm <- unique(zero.vals[,1])
+mycounts <- meancounts[-to.rm,]
+# Placing the "-" sign in front of `to.rm` will yield everything but 0 values
+head(mycounts)
+```
+
+How many genes do I have left?
+
+```{r}
+nrow(mycounts)
+```
+
+A common threshold used for calling something differentially expressed is a log2(FoldChange) of greater than 2 or less than -2. Let’s filter the dataset both ways to see how many genes are up or down-regulated.
+```{r}
+up.ind <- mycounts$log2fc > 2
+down.ind <- mycounts$log2fc < (-2)
+```
+
+```{r}
+sum(up.ind)
+sum(down.ind)
+```
+
+We have fold changes, but a statistician would want to know if they are significant. The mean may fluctuate but it may not be significant. However, fold changes are considered important to biologists: statistically significant small fold changes may not affect cell function and it is of importance to know which genes are dramatically regulated.
+
+## Do this properly with DESeq2
+
+```{r}
+library(DESeq2)
+```
+
+Setup input for DESeq by specifying countdata, metadata, and the experimental design (i.e., which comparisons we are interested in)
+
+```{r}
+dds <- DESeqDataSetFromMatrix(countData=counts, 
+                              colData=metadata, 
+                              design=~dex, 
+                              tidy=TRUE)
+dds
+```
+
+```{r}
+dds <-DESeq(dds)
+results(dds)
+```
+
+Volcano plot: These summary figures are frequently used to highlight the proportion of genes that are both significantly regulated and display a high fold change. All the points are the genes.
+
+```{r}
+res <- results(dds)
+plot(res$log2FoldChange, log(res$padj))
+```
+
+Let's do this with axes inverted.
+
+```{r}
+res$sig <- res$padj<0.05 & abs(res$log2FoldChange)>2
+
+# How many of each?
+table(res$sig)
+```
+
+
+```{r}
+mycols <- rep("gray", nrow(res))
+# rep replicates the colors
+mycols[ abs(res$log2FoldChange) > 2 ]  <- "red" 
+# Overwrite the grey values with red if they are upregulated
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2 )
+mycols[ inds ] <- "blue"
+```
+
+
+```{r}
+plot(res$log2FoldChange, -log(res$padj), col=mycols, xlab="-Log(P-value)", ylab="Log2(FoldChange)")
+
+abline(h=-log(0.05), col="gray",lty=2)
+abline(v=c(-2,2), col="gray",lty=2)
+```
+
+```{r}
+library(ggplot2)
+ggplot(as.data.frame(res), aes(log2FoldChange, -log10(pvalue), col=sig)) + 
+    geom_point() + 
+    ggtitle("Volcano plot")
+```
+
+
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GitHub Documents
+
+This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+
+## Including Code
+
+You can include R code in the document as follows:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
