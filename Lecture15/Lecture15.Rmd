@@ -1,0 +1,155 @@
+---
+title: "Class 15: Genome Informatics I (Class 14 on Website)"
+output: github_document
+---
+
+# Genome Informatics
+
+## Genome
+
+The total genetic material of an organism by which individual traits are encoded, controlled, and ultimately passed on to future generations
+
+Genetics is primarily the study of individual genes and mutations within those genes, and their inheritance patterns, whereas genomics expands upon genetics and considers aspects of the entire genome. This uses computer aided approaches.
+
+NCBI Genome Database - not the best resource. EBI Ensemble is widely used. UCSC Genome Browser Gateway is another resource.
+
+## Early Genome Sequencing
+
+Frederick Sanger discovered chain termination Sanger sequencing.
+
+Phi X was the first organism to be sequenced. It took approximately 15 years and contained 11 genes.
+
+The Human Genome Porject was an international, public consortium that began in 1990 before Haemophilius influenzae was even sequenced- very ambitious!
+  -Cost $2.7 billion
+  -Initiated by James Watson
+  -3.2 billion base pairs of dsDNA
+  
+## Modern Genome Sequencing
+
+Next Generation Sequencing (NGS) technology hae resulted in a paradigm shift from long reasd at a low coverage to short reads at high coverage.
+
+## DNA Sequencing Concepts
+
+### Sequencing by Synthesis
+
+Uses a polymerase to incorporate and assess nucleotides to a priemr sequence, 1 nucelotide at a time
+
+Steps (Illumina Sequencing by Synthesis video):
+1. Ectract and fragment dsDNA (this is your insert)
+2. Add adapters to insert that include your primer binding sequence and capture sequences that allow the DNA to stick to the slide
+3. Bridge Amplification makes a dense cluster of DNA
+4. Fluorescent emission from incorporated dye-labeled nucelotides
+  Cleave dy and blocking group, repeat process
+  
+ 
+## Third Generation Sequencing 
+ 
+Currently in active development
+• Hard to define what “3rd” generation means
+• Typical characteristics:
+– Long (1,000bp+) sequence reads
+– Single molecule (no amplification step)
+– Often associated with nanopore technology
+• But not necessarily!
+
+
+## Types of Genomic Variation
+
+Single Nucleotide Polymorphisms (SNPs) – mutations of one nucleotide to another
+• Insertion/Deletion Polymorphisms (INDELs) – small mutations removing or adding one or more nucleotides at a particular locus
+• Structural Variation (SVs) – medium to large sized rearrangements of chromosomal DNA
+
+
+# Hands On Section
+
+Q1: 4 SNPs
+
+OMIM -> search "childhood asthma Verlaan", top hit provides report of asthma that highlights Verlaan's findings
+
+rs12936231, rs8067378, rs9303277, and rs7216389
+
+Click on SNP -> Ensembl -> See which transcripts each SNP overlaps with
+
+Explore variant through "Genomic Context"
+
+# Galaxy
+
+IP #21
+
+Fastq Format: the weird characters are the quality of the scores for each base in the sequenced fragment
+
+1. The first line (which always starts with ‘@’) is a unique ID for the sequence that follows
+2. The second line contains the bases called for the sequenced fragment
+3. The third line is always a “+” character
+4. The forth line contains the quality scores for each base in the sequenced fragment (these are ASCII encoded…)
+
+Make a FASTQC report -- see how good data is 
+-Green = accurate
+-Yellow = cautious, data is likely okay but you might want to look at it
+-Red = concerns with data
+
+Per Base Sequence quality indicates how likely a base is accurately measured - Want above 20 for 99% accuracy
+
+
+## Analyze RNA-Seq by Genotype Results
+
+Here we read the results of RnA-Seq for about ~230 samples (people) with different genotypes for the rs8067378 Asthma associated SNP.
+
+```{r}
+expr <- read.table("rs8067378_ENSG00000172057.6.txt")
+head(expr)
+```
+
+```{r}
+# Extract the A/A rows, i.e. where the $geno column is equal to "A/A"
+inds<-expr$geno == "A/A"
+expr[ inds, ]
+expr[inds, ]$exp
+mean(expr[inds, ]$exp)
+mean(expr[ inds, "exp"])
+summary(expr[inds, ]$exp)
+```
+
+
+```{r}
+# Do the same for "G/G"
+
+inds2 <- expr$geno == "G/G"
+mean(expr[inds2, ]$exp)
+summary(expr[inds2, ]$exp)
+```
+
+```{r}
+boxplot(exp ~ geno, data=expr, notch=TRUE)
+```
+
+
+
+
+
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GitHub Documents
+
+This is an R Markdown format used for publishing markdown documents to GitHub. When you click the **Knit** button all R code chunks are run and a markdown file (.md) suitable for publishing to GitHub is generated.
+
+## Including Code
+
+You can include R code in the document as follows:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
